@@ -19,6 +19,7 @@ pub struct Mesh {
     pub material: MaterialEnum,
 }
 
+#[allow(dead_code)]
 impl Mesh {
     /// Create a new empty mesh
     /// # Default Values
