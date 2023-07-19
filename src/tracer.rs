@@ -46,7 +46,6 @@ impl RayTracer<'_> {
 
         // Loop through our image
         for y in (0..self.config.height).rev() {
-            println!("Scanlines remaining: {}", y + 1);
             for x in 0..self.config.width {
                 match self.config.mode {
                     DrawingMode::Colors | DrawingMode::Normals => {

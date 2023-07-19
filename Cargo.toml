@@ -9,3 +9,10 @@ edition = "2021"
 anyhow = "1.0.72"
 rand = "0.8"
 thiserror = "1.0.43"
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "bench"
+harness = false
