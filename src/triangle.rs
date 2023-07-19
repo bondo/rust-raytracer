@@ -1,4 +1,8 @@
-use crate::{vec3::{Vec3, cross, dot}, ray::Ray, hit::Hit};
+use crate::{
+    hit::Hit,
+    ray::Ray,
+    vec3::{cross, dot, Vec3},
+};
 
 /// Triangle struct
 #[derive(Copy, Clone, Debug)]
@@ -14,10 +18,9 @@ pub struct Triangle {
 }
 
 impl Triangle {
-
     /// Create a new triangle, default flat shaded
     /// # Arguments
-    /// * 'p1, p2, p3' - The three points of the triangle 
+    /// * 'p1, p2, p3' - The three points of the triangle
     /// * 'n' - Triangle normal vector
     /// # Returns
     /// * Triangle with given points and normal, smooth is default off and empty normals per vertex
@@ -44,7 +47,6 @@ impl Triangle {
 }
 
 impl Triangle {
-
     /// Check if the triangle has been hit by the ray
     /// # Arguments
     /// * 'r' - The incoming ray
@@ -55,7 +57,6 @@ impl Triangle {
     /// * The code was provided by Wikipedia in C++, translated by me
     /// * <https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm>
     pub fn hit(&self, r: Ray) -> Hit {
-
         // Create an empty hit object, this will get populated the ray hits the triangle
         let mut hit = Hit::new();
         let edge1 = self.points[1] - self.points[0];
@@ -97,10 +98,8 @@ impl Triangle {
             hit.t = t;
             hit.at = r.at(t);
             return hit;
-        }
-        else {
+        } else {
             return hit;
         }
-
     }
 }

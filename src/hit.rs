@@ -1,4 +1,8 @@
-use crate::{triangle::Triangle, vec3::Vec3, material::{MaterialEnum, Diffuse}};
+use crate::{
+    material::{Diffuse, MaterialEnum},
+    triangle::Triangle,
+    vec3::Vec3,
+};
 
 /// Contains information about the triangle the ray hit
 #[derive(Clone, Debug)]
@@ -10,7 +14,7 @@ pub struct Hit {
     /// Used to check if the ray hit a triangle
     pub t: f64,
     /// The triangle's material
-    pub material: MaterialEnum
+    pub material: MaterialEnum,
 }
 
 impl Hit {
@@ -25,7 +29,7 @@ impl Hit {
             triangle: Triangle::new_empty(),
             at: Vec3::new(0.0, 0.0, -5000000000000.0),
             t: -1.0,
-            material: MaterialEnum::Diffuse(Diffuse::new(Vec3::new(1.0, 1.0, 1.0)))
+            material: MaterialEnum::Diffuse(Diffuse::new(Vec3::new(1.0, 1.0, 1.0))),
         };
     }
 }

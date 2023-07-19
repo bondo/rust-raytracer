@@ -1,10 +1,10 @@
-use crate::{mesh::Mesh, ray::Ray, hit::Hit};
+use crate::{hit::Hit, mesh::Mesh, ray::Ray};
 
 /// World struct
 #[derive(Clone, Debug)]
 pub struct World {
     /// All the meshes in the world
-    pub meshes: Vec<Mesh>
+    pub meshes: Vec<Mesh>,
 }
 
 impl World {
@@ -20,7 +20,6 @@ impl World {
 }
 
 impl World {
-
     /// Check if any object in the world is hit by a ray
     /// # Arguments
     /// * 'r' - The incoming ray

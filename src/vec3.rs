@@ -1,6 +1,6 @@
-use std::ops::{Div, Sub, Add, Mul};
-use rand::Rng;
 use crate::hit::Hit;
+use rand::Rng;
+use std::ops::{Add, Div, Mul, Sub};
 
 /// Vec3 struct.
 #[derive(Copy, Clone, Debug)]
@@ -11,12 +11,11 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-
     /// Create a new Vec3
     /// # Arguments
     /// 'x,y,z' - Positions
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
-        return Vec3 { x, y, z};
+        return Vec3 { x, y, z };
     }
 
     /// Return the length of the vector
@@ -26,7 +25,7 @@ impl Vec3 {
 
     /// Calculate the length squared of the vector
     pub fn length_squared(self) -> f64 {
-        return (self.x*self.x) + (self.y*self.y) + (self.z*self.z);
+        return (self.x * self.x) + (self.y * self.y) + (self.z * self.z);
     }
 
     /// Check if the parameters of a Vec3 are very close to 0
@@ -86,20 +85,20 @@ impl Add<Vec3> for Vec3 {
 
 /// Calculate the cross product of two Vec3's
 /// # Arguments
-/// * 'a, b' - Two Vec3's 
+/// * 'a, b' - Two Vec3's
 /// # Returns
 /// * The Vec3 result of the cross product
 pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
     return Vec3 {
         x: a.y * b.z - a.z * b.y,
-        y: a.z * b.x - a.x * b.z, 
+        y: a.z * b.x - a.x * b.z,
         z: a.x * b.y - a.y * b.x,
     };
 }
 
 /// Calculate the dot product of two Vec3's
 /// # Arguments
-/// * 'a, b' - Two Vec3's 
+/// * 'a, b' - Two Vec3's
 /// # Returns
 /// * The double result of the dot product
 pub fn dot(a: Vec3, b: Vec3) -> f64 {
@@ -137,7 +136,7 @@ pub fn barycentric(hit: Hit) -> Vec3 {
     let w = (d00 * d21 - d01 * d20) / denom;
     let u = 1.0 - v - w;
 
-    // Return the u,v,w in a Vec3 to grab 
+    // Return the u,v,w in a Vec3 to grab
     return Vec3::new(u, v, w);
 }
 
@@ -157,7 +156,11 @@ impl Mul<Vec3> for Vec3 {
 /// * A random Vec3
 pub fn random_vec_range(min: f64, max: f64) -> Vec3 {
     let mut rng = rand::thread_rng();
-    return Vec3::new(rng.gen_range(min..max), rng.gen_range(min..max), rng.gen_range(min..max));
+    return Vec3::new(
+        rng.gen_range(min..max),
+        rng.gen_range(min..max),
+        rng.gen_range(min..max),
+    );
 }
 
 /// Calculate a random vector in a unit sphere
@@ -168,7 +171,6 @@ pub fn random_in_unit_sphere() -> Vec3 {
             continue;
         }
         return p;
-
     }
 }
 
@@ -184,5 +186,5 @@ pub fn random_unit_vector() -> Vec3 {
 /// # Returns
 /// * A new reflected vector
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-    return v - n * 2.0 * dot(v,n);
+    return v - n * 2.0 * dot(v, n);
 }

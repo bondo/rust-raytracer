@@ -6,11 +6,10 @@ pub struct Ray {
     /// Where the ray begins
     pub origin: Vec3,
     /// The direction the ray is pointing
-    pub direction: Vec3
+    pub direction: Vec3,
 }
 
 impl Ray {
-
     /// Create a new ray
     /// # Arguments
     /// * 'origin' - Ray starting position

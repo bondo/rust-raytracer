@@ -1,15 +1,21 @@
-use crate::{ray::Ray, hit::Hit, vec3::{Vec3, random_unit_vector, barycentric, unit_vector, reflect, dot, random_in_unit_sphere}};
+use crate::{
+    hit::Hit,
+    ray::Ray,
+    vec3::{
+        barycentric, dot, random_in_unit_sphere, random_unit_vector, reflect, unit_vector, Vec3,
+    },
+};
 
 /// Store all the different types of materials
 #[derive(Clone, Debug)]
 pub enum MaterialEnum {
     Diffuse(Diffuse),
-    Metal(Metal)
+    Metal(Metal),
 }
 
 /// Contains functions every material needs to be able to perform
 /// # Functions
-/// * 'scatter' - Tells the program how the ray should scatter based on the material 
+/// * 'scatter' - Tells the program how the ray should scatter based on the material
 /// * 'get_albedo' - Return the objects albedo color
 pub trait Material {
     /// Determine how the ray will bounce off the object based on its material
@@ -29,7 +35,6 @@ pub trait Material {
 }
 
 impl Material for MaterialEnum {
-
     // Not sure if there's a better way to do this...
     // Need to call the various functions of the material based on which material it actually is
 
@@ -47,10 +52,10 @@ impl Material for MaterialEnum {
         match self {
             MaterialEnum::Diffuse(mat) => {
                 return mat.get_albedo();
-            },
+            }
             MaterialEnum::Metal(mat) => {
                 return mat.get_albedo();
-            },
+            }
         }
     }
 }
@@ -59,7 +64,7 @@ impl Material for MaterialEnum {
 #[derive(Clone, Debug)]
 pub struct Diffuse {
     /// The objects albedo color
-    pub albedo: Vec3
+    pub albedo: Vec3,
 }
 
 impl Diffuse {
@@ -72,21 +77,22 @@ impl Diffuse {
 }
 
 impl Material for Diffuse {
-
     // Scatter function for an object with a diffuse material
     fn scatter(&self, _r: Ray, hit: Hit, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
-
         let mut scatter_direction: Vec3;
 
         // If the object is smooth shaded
         if hit.triangle.smooth {
-
             // Calculate the barycentric coordinates
             let bary = barycentric(hit.clone());
 
             // Create a new ray that's scattered
             // The ray bounces based on the interpolated normal and a random unit vector, which aims to simulate diffuse's rough look
-            scatter_direction = unit_vector(hit.triangle.normals[0] * bary.x + hit.triangle.normals[1] * bary.y + hit.triangle.normals[2] * bary.z) + random_unit_vector();
+            scatter_direction = unit_vector(
+                hit.triangle.normals[0] * bary.x
+                    + hit.triangle.normals[1] * bary.y
+                    + hit.triangle.normals[2] * bary.z,
+            ) + random_unit_vector();
 
             if scatter_direction.near_zero() {
                 // If we're close to zero, just set as the normal
@@ -96,8 +102,8 @@ impl Material for Diffuse {
             // Set the current scattered ray based on the location the ray hit and the new direction
             *scattered = Ray::new(hit.at, scatter_direction);
             *attenuation = self.albedo; // Current objects color
-
-        } else { // Not smooth shaded
+        } else {
+            // Not smooth shaded
 
             // Use the single normal and bounce
             scatter_direction = hit.triangle.normal + random_unit_vector();
@@ -124,7 +130,7 @@ pub struct Metal {
     /// Albedo color
     pub albedo: Vec3,
     /// How smooth the metal is
-    pub smoothness: f64
+    pub smoothness: f64,
 }
 
 impl Metal {
@@ -133,38 +139,45 @@ impl Metal {
     /// * 'albedo' - Desired color
     /// * 'smoothness' - How smooth metal is (0.0 is mirror, 1.0 not smooth at all)
     pub fn new(albedo: Vec3, smoothness: f64) -> Metal {
-        Metal {albedo, smoothness }
+        Metal { albedo, smoothness }
     }
-
 }
 
 impl Material for Metal {
-
     // Scatter for a metal material
     fn scatter(&self, r: Ray, hit: Hit, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
-
         // Will contain the reflected direction
         let reflected: Vec3;
 
         // If the object is smooth shaded
         if hit.triangle.smooth {
-
             // Calculate barycentric coordinates
             let bary = barycentric(hit.clone());
 
             // Call reflect function based on the input ray direction and the interpolated normal
             // Multiply by a random in unit sphere and smoothness to change how smooth the reflection is
-            reflected = reflect(unit_vector(r.direction), unit_vector(hit.triangle.normals[0] * bary.x + hit.triangle.normals[1] * bary.y + hit.triangle.normals[2] * bary.z) + (random_in_unit_sphere() * self.smoothness));
+            reflected = reflect(
+                unit_vector(r.direction),
+                unit_vector(
+                    hit.triangle.normals[0] * bary.x
+                        + hit.triangle.normals[1] * bary.y
+                        + hit.triangle.normals[2] * bary.z,
+                ) + (random_in_unit_sphere() * self.smoothness),
+            );
 
             // Set the new scattered direction based on the reflection
             *scattered = Ray::new(hit.at, reflected);
             *attenuation = self.albedo;
 
             // Make sure the scattered direction is in a similar direction as the normals of each vertex
-            return dot(scattered.direction, hit.triangle.normals[0]) > 0.0 || dot(scattered.direction, hit.triangle.normals[1]) > 0.0 || dot(scattered.direction, hit.triangle.normals[2]) > 0.0;
-
+            return dot(scattered.direction, hit.triangle.normals[0]) > 0.0
+                || dot(scattered.direction, hit.triangle.normals[1]) > 0.0
+                || dot(scattered.direction, hit.triangle.normals[2]) > 0.0;
         } else {
-            reflected = reflect(unit_vector(r.direction), hit.triangle.normal + (random_in_unit_sphere() * self.smoothness));
+            reflected = reflect(
+                unit_vector(r.direction),
+                hit.triangle.normal + (random_in_unit_sphere() * self.smoothness),
+            );
             *scattered = Ray::new(hit.at, reflected);
             *attenuation = self.albedo;
 
