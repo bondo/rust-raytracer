@@ -1,3 +1,4 @@
+mod camera;
 mod config;
 mod error;
 mod hit;
@@ -16,6 +17,7 @@ pub use mesh::load_mesh;
 pub use tracer::RayTracer;
 pub use vec3::Vec3;
 
+use camera::Camera;
 use error::Result;
 use hit::Hit;
 use mesh::Mesh;

@@ -1,5 +1,3 @@
-use std::io::Write;
-
 use crate::RayTracer;
 
 /// Determine which drawing mode to use
@@ -56,7 +54,7 @@ impl RayTracerConfig {
         self
     }
 
-    pub fn build(self, output: &mut dyn Write) -> RayTracer {
-        RayTracer::new(self, output)
+    pub fn build(self) -> RayTracer {
+        RayTracer::new(self)
     }
 }

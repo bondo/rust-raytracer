@@ -1,11 +1,9 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use rust_raytracer::{load_mesh, Diffuse, MaterialEnum, Metal, RayTracerConfig, Vec3};
+use rust_raytracer::{load_mesh, Diffuse, MaterialEnum, Metal, RayTracer, Vec3};
 
-fn run_ray_tracing() -> anyhow::Result<Vec<u8>> {
-    let mut output: Vec<u8> = vec![];
-    let mut ray_tracer = RayTracerConfig::default().build(&mut output);
+fn setup() -> anyhow::Result<RayTracer> {
+    let mut ray_tracer = RayTracer::default();
 
-    // Default scene
     // Floor object
     let mut floor = load_mesh("models/plane.obj", false)?;
     floor.scale(4.0);
@@ -24,13 +22,27 @@ fn run_ray_tracing() -> anyhow::Result<Vec<u8>> {
     ray_tracer.add_mesh(floor);
     ray_tracer.add_mesh(cube);
 
-    ray_tracer.run()?;
-
-    Ok(output)
+    Ok(ray_tracer)
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("sequential", |b| b.iter(|| run_ray_tracing().unwrap()));
+    c.bench_function("sequential", |b| {
+        b.iter(|| {
+            let mut output: Vec<u8> = vec![];
+            let ray_tracer = setup().unwrap();
+            ray_tracer.run_sequential(&mut output).unwrap();
+            output
+        })
+    });
+
+    c.bench_function("parallel", |b| {
+        b.iter(|| {
+            let mut output: Vec<u8> = vec![];
+            let ray_tracer = setup().unwrap();
+            ray_tracer.run_parallel(&mut output).unwrap();
+            output
+        })
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);

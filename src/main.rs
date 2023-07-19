@@ -1,11 +1,14 @@
 use std::fs::File;
 
 use anyhow::Context;
-use rust_raytracer::{load_mesh, Diffuse, MaterialEnum, Metal, RayTracerConfig, Vec3};
+use rust_raytracer::{load_mesh, Diffuse, DrawingMode, MaterialEnum, Metal, RayTracerConfig, Vec3};
 
 fn main() -> anyhow::Result<()> {
-    let mut output_file = File::create("output.ppm").context("Failed to create PPM file")?;
-    let mut ray_tracer = RayTracerConfig::default().build(&mut output_file);
+    let mut ray_tracer = RayTracerConfig::default()
+        .width(1000)
+        .height(1000)
+        .mode(DrawingMode::Samples(5))
+        .build();
 
     // Default scene
     // Floor object
@@ -26,7 +29,10 @@ fn main() -> anyhow::Result<()> {
     ray_tracer.add_mesh(floor);
     ray_tracer.add_mesh(cube);
 
-    ray_tracer.run().context("Failed to run ray tracer")?;
+    let mut output_file = File::create("output.ppm").context("Failed to create PPM file")?;
+    ray_tracer
+        .run_parallel(&mut output_file)
+        .context("Failed to run ray tracer")?;
 
     Ok(())
 }

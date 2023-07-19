@@ -1,22 +1,30 @@
 use rand::Rng;
-use std::io::Write;
+use rayon::prelude::*;
+use std::{io::Write, sync::Arc};
 
 use crate::{
     vec3::{barycentric, unit_vector},
-    DrawingMode, Material, Mesh, Ray, RayTracerConfig, Result, Vec3, World,
+    Camera, DrawingMode, Material, Mesh, Ray, RayTracerConfig, Result, Vec3, World,
 };
 
-pub struct RayTracer<'a> {
+pub struct RayTracer {
+    camera: Camera,
     config: RayTracerConfig,
-    output: &'a mut dyn Write,
     world: World,
 }
 
-impl RayTracer<'_> {
-    pub(crate) fn new(config: RayTracerConfig, output: &mut dyn Write) -> RayTracer {
+impl Default for RayTracer {
+    fn default() -> Self {
+        Self::new(RayTracerConfig::default())
+    }
+}
+
+impl RayTracer {
+    pub(crate) fn new(config: RayTracerConfig) -> RayTracer {
+        let aspect_ratio: f64 = (config.width as f64) / (config.height as f64);
         RayTracer {
+            camera: Camera::with_aspect_ratio(aspect_ratio),
             config,
-            output,
             world: World::new(),
         }
     }
@@ -25,73 +33,88 @@ impl RayTracer<'_> {
         self.world.add(mesh);
     }
 
-    pub fn run(mut self) -> Result<()> {
-        let aspect_ratio: f64 = (self.config.width as f64) / (self.config.height as f64);
-
-        self.output.write_all(
-            format!("P3\n{} {}\n255\n", self.config.width, self.config.height).as_bytes(),
-        )?;
-
-        // Viewport properties
-        let viewport_height = 2.0;
-        let viewport_width = aspect_ratio * viewport_height;
-
-        // Camera properties
-        let focal_length = 5.0;
-        let origin = Vec3::new(0.0, 0.0, 0.0);
-        let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-        let vertical = Vec3::new(0.0, viewport_height, 0.0);
-        let lower_left_corner =
-            origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, focal_length);
+    pub fn run_sequential(&self, output: &mut dyn Write) -> Result<()> {
+        self.write_header(output)?;
 
         // Loop through our image
         for y in (0..self.config.height).rev() {
             for x in 0..self.config.width {
-                match self.config.mode {
-                    DrawingMode::Colors | DrawingMode::Normals => {
-                        let u = x as f64 / (self.config.width - 1) as f64;
-                        let v = y as f64 / (self.config.height - 1) as f64;
-
-                        // Calculate the ray based on the pixel we are on
-                        let r = Ray::new(
-                            origin,
-                            lower_left_corner + (horizontal * u) + (vertical * v) - origin,
-                        );
-
-                        // Send over the ray and world and figure out the color we should draw for this pixel
-                        let color = self.ray_color(r, self.config.max_depth);
-
-                        self.write_color(color)?;
-                    }
-                    DrawingMode::Samples(samples) => {
-                        let mut color = Vec3::new(0.0, 0.0, 0.0);
-
-                        // Loop for however many samples we want to take
-                        for _ in 0..samples {
-                            // Need random number generator from 0-1
-                            let mut rng = rand::thread_rng();
-
-                            // Calculate u&v based on our random samples
-                            let u: f64 =
-                                ((x) as f64 + rng.gen::<f64>()) / (self.config.width - 1) as f64;
-                            let v: f64 =
-                                (y as f64 + rng.gen::<f64>()) / (self.config.height - 1) as f64;
-
-                            let r = Ray::new(
-                                origin,
-                                lower_left_corner + (horizontal * u) + (vertical * v) - origin,
-                            );
-
-                            // Add to the color for each sample, essentially creating an average color
-                            color = color + self.ray_color(r, self.config.max_depth);
-                        }
-                        self.write_color(color)?;
-                    }
-                }
+                let pixel = self.generate_pixel(x, y);
+                self.write_color(output, pixel)?;
             }
         }
 
         Ok(())
+    }
+
+    pub fn run_parallel(&self, output: &mut dyn Write) -> Result<()> {
+        self.write_header(output)?;
+
+        let this = Arc::new(self);
+
+        // Loop through our image
+        let pixels: Vec<Vec3> = (0..this.config.height)
+            .into_par_iter()
+            .rev()
+            .flat_map(|y| {
+                let this = this.clone();
+                (0..this.config.width)
+                    .into_par_iter()
+                    .map(move |x| this.generate_pixel(x, y))
+            })
+            .collect();
+
+        for pixel in pixels {
+            this.write_color(output, pixel)?;
+        }
+
+        Ok(())
+    }
+
+    fn generate_pixel(&self, x: u32, y: u32) -> Vec3 {
+        match self.config.mode {
+            DrawingMode::Colors | DrawingMode::Normals => {
+                let u = x as f64 / (self.config.width - 1) as f64;
+                let v = y as f64 / (self.config.height - 1) as f64;
+
+                // Calculate the ray based on the pixel we are on
+                let r = Ray::new(
+                    self.camera.origin,
+                    self.camera.lower_left_corner
+                        + (self.camera.horizontal * u)
+                        + (self.camera.vertical * v)
+                        - self.camera.origin,
+                );
+
+                // Send over the ray and world and figure out the color we should draw for this pixel
+                self.ray_color(r, self.config.max_depth)
+            }
+            DrawingMode::Samples(samples) => {
+                let mut color = Vec3::new(0.0, 0.0, 0.0);
+
+                // Loop for however many samples we want to take
+                for _ in 0..samples {
+                    // Need random number generator from 0-1
+                    let mut rng = rand::thread_rng();
+
+                    // Calculate u&v based on our random samples
+                    let u: f64 = ((x) as f64 + rng.gen::<f64>()) / (self.config.width - 1) as f64;
+                    let v: f64 = (y as f64 + rng.gen::<f64>()) / (self.config.height - 1) as f64;
+
+                    let r = Ray::new(
+                        self.camera.origin,
+                        self.camera.lower_left_corner
+                            + (self.camera.horizontal * u)
+                            + (self.camera.vertical * v)
+                            - self.camera.origin,
+                    );
+
+                    // Add to the color for each sample, essentially creating an average color
+                    color = color + self.ray_color(r, self.config.max_depth);
+                }
+                color
+            }
+        }
     }
 
     /// Calculate color based on the ray and whatever it hits
@@ -170,11 +193,19 @@ impl RayTracer<'_> {
         (Vec3::new(1.0, 1.0, 1.0) * (1.0 - t)) + Vec3::new(0.5, 0.7, 1.0) * t
     }
 
+    fn write_header(&self, output: &mut dyn Write) -> Result<()> {
+        output.write_all(
+            format!("P3\n{} {}\n255\n", self.config.width, self.config.height).as_bytes(),
+        )?;
+
+        Ok(())
+    }
+
     /// Write a color to the output file
     /// # Arguments
     /// * 'output' - PPM file we write to
     /// * 'color' - Color which we wish to write
-    fn write_color(&mut self, color: Vec3) -> Result<()> {
+    fn write_color(&self, output: &mut dyn Write, color: Vec3) -> Result<()> {
         let r: u32;
         let g: u32;
         let b: u32;
@@ -197,8 +228,7 @@ impl RayTracer<'_> {
             panic!("Color value out of range");
         }
 
-        self.output
-            .write_all(format!("{} {} {}\n", r, g, b).as_bytes())?;
+        output.write_all(format!("{} {} {}\n", r, g, b).as_bytes())?;
 
         Ok(())
     }
