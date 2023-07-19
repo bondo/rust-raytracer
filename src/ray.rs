@@ -1,4 +1,4 @@
-use crate::vec3::Vec3;
+use crate::Vec3;
 
 /// Ray struct
 #[derive(Copy, Clone, Debug)]

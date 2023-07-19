@@ -1,13 +1,14 @@
-use crate::{
-    hit::Hit,
-    material::{Diffuse, MaterialEnum},
-    ray::Ray,
-    triangle::Triangle,
-    vec3::{unit_vector, Vec3},
-};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
+};
+
+use thiserror::Error;
+
+use crate::{
+    material::{Diffuse, MaterialEnum},
+    vec3::unit_vector,
+    Hit, Ray, Triangle, Vec3,
 };
 
 /// Mesh struct
@@ -227,14 +228,26 @@ impl Mesh {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum MeshError {
+    #[error("Failed to open mesh file: {0}")]
+    OpenFile(#[from] std::io::Error),
+
+    #[error("Failed to parse mesh data: {0}")]
+    ParseInt(#[from] std::num::ParseIntError),
+
+    #[error("Failed to parse mesh data: {0}")]
+    ParseFloat(#[from] std::num::ParseFloatError),
+}
+
 /// Load an OBJ mesh
 /// # Arguments
 /// * 'path' - Path of an OBJ file
 /// * 'smooth' - Boolean which states if the mesh is smooth shaded
 /// # Returns
 /// * A mesh and all of its triangles, including a default material
-pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
-    let file = File::open(path).expect("Failed to open file");
+pub fn load_mesh(path: &str, smooth: bool) -> Result<Mesh, MeshError> {
+    let file = File::open(path)?;
     let reader = BufReader::new(file);
 
     // Will store all vertices, normals, and triangles
@@ -244,7 +257,7 @@ pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
 
     // For each line in the obj file
     for line in reader.lines() {
-        let line = line.expect("Failed to read line");
+        let line = line?;
 
         // Split by white space
         let words: Vec<&str> = line.split_whitespace().collect();
@@ -256,19 +269,11 @@ pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
         // If the first word is v, this means vertex
         if words[0] == "v" {
             // Push the vertex into the vertices vec
-            vertices.push([
-                words[1].parse().unwrap(),
-                words[2].parse().unwrap(),
-                words[3].parse().unwrap(),
-            ]);
+            vertices.push([words[1].parse()?, words[2].parse()?, words[3].parse()?]);
 
         // If it's a vertex normal
         } else if words[0] == "vn" {
-            normals.push([
-                words[1].parse().unwrap(),
-                words[2].parse().unwrap(),
-                words[3].parse().unwrap(),
-            ]);
+            normals.push([words[1].parse()?, words[2].parse()?, words[3].parse()?]);
 
         // If it's a face
         } else if words[0] == "f" {
@@ -278,14 +283,14 @@ pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
             let v3: Vec<&str> = words[3].split('/').collect();
 
             // Match the points and the normals
-            let p1: usize = v1[0].parse().unwrap();
-            let n1: usize = v1[2].parse().unwrap();
+            let p1: usize = v1[0].parse()?;
+            let n1: usize = v1[2].parse()?;
 
-            let p2: usize = v2[0].parse().unwrap();
-            let n2: usize = v2[2].parse().unwrap();
+            let p2: usize = v2[0].parse()?;
+            let n2: usize = v2[2].parse()?;
 
-            let p3: usize = v3[0].parse().unwrap();
-            let n3: usize = v3[2].parse().unwrap();
+            let p3: usize = v3[0].parse()?;
+            let n3: usize = v3[2].parse()?;
 
             // Create a new triangle
             let mut trig = Triangle::new(
@@ -324,5 +329,5 @@ pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
     }
 
     // Return the new mesh based on the triangles
-    Mesh::new_mesh(triangles)
+    Ok(Mesh::new_mesh(triangles))
 }

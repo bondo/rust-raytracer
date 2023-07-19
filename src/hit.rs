@@ -1,7 +1,6 @@
 use crate::{
     material::{Diffuse, MaterialEnum},
-    triangle::Triangle,
-    vec3::Vec3,
+    Triangle, Vec3,
 };
 
 /// Contains information about the triangle the ray hit

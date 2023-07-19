@@ -1,6 +1,8 @@
-use crate::hit::Hit;
-use rand::Rng;
 use std::ops::{Add, Div, Mul, Sub};
+
+use rand::Rng;
+
+use crate::Hit;
 
 /// Vec3 struct.
 #[derive(Copy, Clone, Debug)]

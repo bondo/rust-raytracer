@@ -1,4 +1,4 @@
-use crate::{hit::Hit, mesh::Mesh, ray::Ray};
+use crate::{Hit, Mesh, Ray};
 
 /// World struct
 #[derive(Clone, Debug)]

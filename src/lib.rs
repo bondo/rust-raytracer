@@ -1,4 +1,5 @@
 mod config;
+mod error;
 mod hit;
 mod material;
 mod mesh;
@@ -9,11 +10,15 @@ mod vec3;
 mod world;
 
 pub use config::{DrawingMode, RayTracerConfig};
+pub use error::Error;
 pub use material::{Diffuse, Material, MaterialEnum, Metal};
 pub use mesh::load_mesh;
-use mesh::Mesh;
-use ray::Ray;
 pub use tracer::RayTracer;
 pub use vec3::Vec3;
-use vec3::{barycentric, unit_vector};
+
+use error::Result;
+use hit::Hit;
+use mesh::Mesh;
+use ray::Ray;
+use triangle::Triangle;
 use world::World;

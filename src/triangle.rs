@@ -1,7 +1,6 @@
 use crate::{
-    hit::Hit,
-    ray::Ray,
-    vec3::{cross, dot, Vec3},
+    vec3::{cross, dot},
+    Hit, Ray, Vec3,
 };
 
 /// Triangle struct

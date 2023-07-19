@@ -2,7 +2,8 @@ use rand::Rng;
 use std::io::Write;
 
 use crate::{
-    barycentric, unit_vector, DrawingMode, Material, Mesh, Ray, RayTracerConfig, Vec3, World,
+    vec3::{barycentric, unit_vector},
+    DrawingMode, Material, Mesh, Ray, RayTracerConfig, Result, Vec3, World,
 };
 
 pub struct RayTracer<'a> {
@@ -24,14 +25,12 @@ impl RayTracer<'_> {
         self.world.add(mesh);
     }
 
-    pub fn run(mut self) {
+    pub fn run(mut self) -> Result<()> {
         let aspect_ratio: f64 = (self.config.width as f64) / (self.config.height as f64);
 
-        self.output
-            .write_all(
-                format!("P3\n{} {}\n255\n", self.config.width, self.config.height).as_bytes(),
-            )
-            .expect("Failed to write to PPM file");
+        self.output.write_all(
+            format!("P3\n{} {}\n255\n", self.config.width, self.config.height).as_bytes(),
+        )?;
 
         // Viewport properties
         let viewport_height = 2.0;
@@ -63,7 +62,7 @@ impl RayTracer<'_> {
                         // Send over the ray and world and figure out the color we should draw for this pixel
                         let color = self.ray_color(r, self.config.max_depth);
 
-                        self.write_color(color);
+                        self.write_color(color)?;
                     }
                     DrawingMode::Samples(samples) => {
                         let mut color = Vec3::new(0.0, 0.0, 0.0);
@@ -87,11 +86,13 @@ impl RayTracer<'_> {
                             // Add to the color for each sample, essentially creating an average color
                             color = color + self.ray_color(r, self.config.max_depth);
                         }
-                        self.write_color(color);
+                        self.write_color(color)?;
                     }
                 }
             }
         }
+
+        Ok(())
     }
 
     /// Calculate color based on the ray and whatever it hits
@@ -174,7 +175,7 @@ impl RayTracer<'_> {
     /// # Arguments
     /// * 'output' - PPM file we write to
     /// * 'color' - Color which we wish to write
-    fn write_color(&mut self, color: Vec3) {
+    fn write_color(&mut self, color: Vec3) -> Result<()> {
         let r: u32;
         let g: u32;
         let b: u32;
@@ -198,7 +199,8 @@ impl RayTracer<'_> {
         }
 
         self.output
-            .write_all(format!("{} {} {}\n", r, g, b).as_bytes())
-            .expect("Unable to write to output");
+            .write_all(format!("{} {} {}\n", r, g, b).as_bytes())?;
+
+        Ok(())
     }
 }

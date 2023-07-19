@@ -1,9 +1,6 @@
 use crate::{
-    hit::Hit,
-    ray::Ray,
-    vec3::{
-        barycentric, dot, random_in_unit_sphere, random_unit_vector, reflect, unit_vector, Vec3,
-    },
+    vec3::{barycentric, dot, random_in_unit_sphere, random_unit_vector, reflect, unit_vector},
+    Hit, Ray, Vec3,
 };
 
 /// Store all the different types of materials
