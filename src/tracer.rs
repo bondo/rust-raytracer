@@ -12,7 +12,7 @@ pub struct RayTracer<'a> {
 }
 
 impl RayTracer<'_> {
-    pub(crate) fn new<'a>(config: RayTracerConfig, output: &'a mut dyn Write) -> RayTracer<'a> {
+    pub(crate) fn new(config: RayTracerConfig, output: &mut dyn Write) -> RayTracer {
         RayTracer {
             config,
             output,
@@ -28,7 +28,9 @@ impl RayTracer<'_> {
         let aspect_ratio: f64 = (self.config.width as f64) / (self.config.height as f64);
 
         self.output
-            .write(format!("P3\n{} {}\n255\n", self.config.width, self.config.height).as_bytes())
+            .write_all(
+                format!("P3\n{} {}\n255\n", self.config.width, self.config.height).as_bytes(),
+            )
             .expect("Failed to write to PPM file");
 
         // Viewport properties
@@ -114,24 +116,21 @@ impl RayTracer<'_> {
             }
             DrawingMode::Normals => {
                 if hit.t > 0.0 {
-                    // N will store the normal of what we hit
-                    let n: Vec3;
-
                     // If the mesh is smooth shaded, we need to calculate the interpolated normal
-                    if hit.triangle.smooth {
+                    let n = if hit.triangle.smooth {
                         // Calculate the barycentric coordinates
                         let bary = barycentric(hit.clone());
 
                         // Calculate the interpolated normal
-                        n = unit_vector(
+                        unit_vector(
                             hit.triangle.normals[0] * bary.x
                                 + hit.triangle.normals[1] * bary.y
                                 + hit.triangle.normals[2] * bary.z,
-                        );
+                        )
                     } else {
                         // Mesh isn't smooth shaded, simply return its single normal
-                        n = hit.triangle.normal;
-                    }
+                        hit.triangle.normal
+                    };
 
                     // Calculate color based on the normal
                     return Vec3::new(n.x + 1.0, n.y + 1.0, n.z + 1.0) * 0.5;
@@ -140,7 +139,7 @@ impl RayTracer<'_> {
             DrawingMode::Samples(_) => {
                 // Samples mode recursively calls ray_color
                 // Quit recursively calling if we've bounced our last bounce
-                if depth <= 0 {
+                if depth == 0 {
                     return Vec3::new(0.0, 0.0, 0.0);
                 }
                 if hit.t > 0.0 {
@@ -168,7 +167,7 @@ impl RayTracer<'_> {
         let t = (n.y + 1.0) * 0.5;
 
         // Typical interpolation
-        return (Vec3::new(1.0, 1.0, 1.0) * (1.0 - t)) + Vec3::new(0.5, 0.7, 1.0) * t;
+        (Vec3::new(1.0, 1.0, 1.0) * (1.0 - t)) + Vec3::new(0.5, 0.7, 1.0) * t
     }
 
     /// Write a color to the output file
@@ -199,7 +198,7 @@ impl RayTracer<'_> {
         }
 
         self.output
-            .write(format!("{} {} {}\n", r, g, b).as_bytes())
+            .write_all(format!("{} {} {}\n", r, g, b).as_bytes())
             .expect("Unable to write to output");
     }
 }

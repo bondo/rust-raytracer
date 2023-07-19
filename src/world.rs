@@ -9,8 +9,8 @@ pub struct World {
 
 impl World {
     /// Create a new empty world
-    pub fn new() -> World {
-        return World { meshes: Vec::new() };
+    pub fn new() -> Self {
+        Self { meshes: Vec::new() }
     }
 
     /// Add a mesh to the world
@@ -29,12 +29,10 @@ impl World {
         let mut closest_hit = Hit::new();
         for mesh in self.meshes.iter() {
             let hit = mesh.hit(r);
-            if hit.t > 0.0 {
-                if hit.at.z > closest_hit.at.z {
-                    closest_hit = hit;
-                }
+            if hit.t > 0.0 && hit.at.z > closest_hit.at.z {
+                closest_hit = hit;
             }
         }
-        return closest_hit;
+        closest_hit
     }
 }

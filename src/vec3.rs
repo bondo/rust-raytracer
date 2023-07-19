@@ -14,24 +14,24 @@ impl Vec3 {
     /// Create a new Vec3
     /// # Arguments
     /// 'x,y,z' - Positions
-    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
-        return Vec3 { x, y, z };
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Self { x, y, z }
     }
 
     /// Return the length of the vector
     pub fn length(self) -> f64 {
-        return self.length_squared().sqrt();
+        self.length_squared().sqrt()
     }
 
     /// Calculate the length squared of the vector
     pub fn length_squared(self) -> f64 {
-        return (self.x * self.x) + (self.y * self.y) + (self.z * self.z);
+        (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
     }
 
     /// Check if the parameters of a Vec3 are very close to 0
     pub fn near_zero(self) -> bool {
         let s = 1e-8;
-        return (self.x.abs() < s) && (self.y.abs() < s) && (self.z.abs() < s);
+        (self.x.abs() < s) && (self.y.abs() < s) && (self.z.abs() < s)
     }
 }
 
@@ -66,7 +66,7 @@ impl Mul<f64> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, n: f64) -> Vec3 {
-        return Vec3::new(self.x * n, self.y * n, self.z * n);
+        Vec3::new(self.x * n, self.y * n, self.z * n)
     }
 }
 
@@ -89,11 +89,11 @@ impl Add<Vec3> for Vec3 {
 /// # Returns
 /// * The Vec3 result of the cross product
 pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
-    return Vec3 {
+    Vec3 {
         x: a.y * b.z - a.z * b.y,
         y: a.z * b.x - a.x * b.z,
         z: a.x * b.y - a.y * b.x,
-    };
+    }
 }
 
 /// Calculate the dot product of two Vec3's
@@ -102,7 +102,7 @@ pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
 /// # Returns
 /// * The double result of the dot product
 pub fn dot(a: Vec3, b: Vec3) -> f64 {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
+    a.x * b.x + a.y * b.y + a.z * b.z
 }
 
 /// Calculate the unit vector of a Vec3
@@ -111,7 +111,7 @@ pub fn dot(a: Vec3, b: Vec3) -> f64 {
 /// # Returns
 /// * The unit vector result
 pub fn unit_vector(v: Vec3) -> Vec3 {
-    return v / v.length();
+    v / v.length()
 }
 
 /// Calculate the barycentric coordinates
@@ -137,7 +137,7 @@ pub fn barycentric(hit: Hit) -> Vec3 {
     let u = 1.0 - v - w;
 
     // Return the u,v,w in a Vec3 to grab
-    return Vec3::new(u, v, w);
+    Vec3::new(u, v, w)
 }
 
 /// Allow the Vec3 to be multiplied by another Vec3
@@ -145,7 +145,7 @@ impl Mul<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, v: Vec3) -> Vec3 {
-        return Vec3::new(self.x * v.x, self.y * v.y, self.z * v.z);
+        Vec3::new(self.x * v.x, self.y * v.y, self.z * v.z)
     }
 }
 
@@ -156,11 +156,11 @@ impl Mul<Vec3> for Vec3 {
 /// * A random Vec3
 pub fn random_vec_range(min: f64, max: f64) -> Vec3 {
     let mut rng = rand::thread_rng();
-    return Vec3::new(
+    Vec3::new(
         rng.gen_range(min..max),
         rng.gen_range(min..max),
         rng.gen_range(min..max),
-    );
+    )
 }
 
 /// Calculate a random vector in a unit sphere
@@ -176,7 +176,7 @@ pub fn random_in_unit_sphere() -> Vec3 {
 
 /// Generate a random unit vector
 pub fn random_unit_vector() -> Vec3 {
-    return unit_vector(random_in_unit_sphere());
+    unit_vector(random_in_unit_sphere())
 }
 
 /// Reflect a Vec3 based on a Vec3 and a normal Vec3. Gives a perfect bounce
@@ -186,5 +186,5 @@ pub fn random_unit_vector() -> Vec3 {
 /// # Returns
 /// * A new reflected vector
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-    return v - n * 2.0 * dot(v, n);
+    v - n * 2.0 * dot(v, n)
 }

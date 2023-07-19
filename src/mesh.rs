@@ -19,6 +19,12 @@ pub struct Mesh {
     pub material: MaterialEnum,
 }
 
+impl Default for Mesh {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[allow(dead_code)]
 impl Mesh {
     /// Create a new empty mesh
@@ -26,10 +32,10 @@ impl Mesh {
     /// * 'triangles' - Empty Rust vec
     /// * 'material' - White diffuse material
     pub fn new() -> Mesh {
-        return Mesh {
+        Mesh {
             triangles: Vec::new(),
             material: MaterialEnum::Diffuse(Diffuse::new(Vec3::new(1.0, 1.0, 1.0))),
-        };
+        }
     }
 
     /// Create a mesh with an already established Vec of triangles
@@ -217,7 +223,7 @@ impl Mesh {
                 }
             }
         }
-        return closest_hit;
+        closest_hit
     }
 }
 
@@ -243,7 +249,7 @@ pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
         // Split by white space
         let words: Vec<&str> = line.split_whitespace().collect();
 
-        if words.len() == 0 {
+        if words.is_empty() {
             continue;
         }
 
@@ -318,5 +324,5 @@ pub fn load_mesh(path: &str, smooth: bool) -> Mesh {
     }
 
     // Return the new mesh based on the triangles
-    return Mesh::new_mesh(triangles);
+    Mesh::new_mesh(triangles)
 }

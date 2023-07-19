@@ -17,6 +17,12 @@ pub struct Hit {
     pub material: MaterialEnum,
 }
 
+impl Default for Hit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Hit {
     /// Create a new empty hit object
     /// # Default Values
@@ -25,11 +31,11 @@ impl Hit {
     /// * 't' - -1.0
     /// * 'material' - White diffuse material
     pub fn new() -> Hit {
-        return Hit {
+        Hit {
             triangle: Triangle::new_empty(),
             at: Vec3::new(0.0, 0.0, -5000000000000.0),
             t: -1.0,
             material: MaterialEnum::Diffuse(Diffuse::new(Vec3::new(1.0, 1.0, 1.0))),
-        };
+        }
     }
 }

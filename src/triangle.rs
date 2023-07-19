@@ -24,25 +24,25 @@ impl Triangle {
     /// * 'n' - Triangle normal vector
     /// # Returns
     /// * Triangle with given points and normal, smooth is default off and empty normals per vertex
-    pub fn new(p1: Vec3, p2: Vec3, p3: Vec3, n: Vec3) -> Triangle {
-        return Triangle {
+    pub fn new(p1: Vec3, p2: Vec3, p3: Vec3, n: Vec3) -> Self {
+        Self {
             points: [p1, p2, p3],
             normal: n,
             smooth: false,
             normals: [Vec3::new(0.0, 0.0, 0.0); 3],
-        };
+        }
     }
 
     /// Create an empty triangle
     /// # Returns
     /// * Triangle with (0,0,0) for all points and normals
-    pub fn new_empty() -> Triangle {
-        return Triangle::new(
+    pub fn new_empty() -> Self {
+        Self::new(
             Vec3::new(0.0, 0.0, 0.0),
             Vec3::new(0.0, 0.0, 0.0),
             Vec3::new(0.0, 0.0, 0.0),
             Vec3::new(0.0, 0.0, 0.0),
-        );
+        )
     }
 }
 
@@ -71,7 +71,7 @@ impl Triangle {
         let f = 1.0 / a;
         let s = r.origin - self.points[0];
         let u = f * dot(s, h);
-        if u < 0.0 || u > 1.0 {
+        if !(0.0..=1.0).contains(&u) {
             return hit;
         }
 
@@ -97,9 +97,9 @@ impl Triangle {
             hit.triangle = trig;
             hit.t = t;
             hit.at = r.at(t);
-            return hit;
+            hit
         } else {
-            return hit;
+            hit
         }
     }
 }

@@ -40,22 +40,14 @@ impl Material for MaterialEnum {
 
     fn scatter(&self, r: Ray, hit: Hit, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
         match self {
-            MaterialEnum::Diffuse(mat) => {
-                return mat.scatter(r, hit, attenuation, scattered);
-            }
-            MaterialEnum::Metal(mat) => {
-                return mat.scatter(r, hit, attenuation, scattered);
-            }
+            MaterialEnum::Diffuse(mat) => mat.scatter(r, hit, attenuation, scattered),
+            MaterialEnum::Metal(mat) => mat.scatter(r, hit, attenuation, scattered),
         }
     }
     fn get_albedo(&self) -> Vec3 {
         match self {
-            MaterialEnum::Diffuse(mat) => {
-                return mat.get_albedo();
-            }
-            MaterialEnum::Metal(mat) => {
-                return mat.get_albedo();
-            }
+            MaterialEnum::Diffuse(mat) => mat.get_albedo(),
+            MaterialEnum::Metal(mat) => mat.get_albedo(),
         }
     }
 }
@@ -71,8 +63,8 @@ impl Diffuse {
     /// Create a new diffuse material
     /// # Arguments
     /// * 'albedo' - Desired color
-    pub fn new(albedo: Vec3) -> Diffuse {
-        return Diffuse { albedo };
+    pub fn new(albedo: Vec3) -> Self {
+        Self { albedo }
     }
 }
 
@@ -115,12 +107,12 @@ impl Material for Diffuse {
             *scattered = Ray::new(hit.at, scatter_direction);
             *attenuation = self.albedo;
         }
-        return true;
+        true
     }
 
     // Simply return the albedo color
     fn get_albedo(&self) -> Vec3 {
-        return self.albedo;
+        self.albedo
     }
 }
 
@@ -170,9 +162,9 @@ impl Material for Metal {
             *attenuation = self.albedo;
 
             // Make sure the scattered direction is in a similar direction as the normals of each vertex
-            return dot(scattered.direction, hit.triangle.normals[0]) > 0.0
+            dot(scattered.direction, hit.triangle.normals[0]) > 0.0
                 || dot(scattered.direction, hit.triangle.normals[1]) > 0.0
-                || dot(scattered.direction, hit.triangle.normals[2]) > 0.0;
+                || dot(scattered.direction, hit.triangle.normals[2]) > 0.0
         } else {
             reflected = reflect(
                 unit_vector(r.direction),
@@ -182,11 +174,11 @@ impl Material for Metal {
             *attenuation = self.albedo;
 
             // Make sure the direction is similar to the triangle's normal
-            return dot(scattered.direction, hit.triangle.normal) > 0.0;
+            dot(scattered.direction, hit.triangle.normal) > 0.0
         }
     }
 
     fn get_albedo(&self) -> Vec3 {
-        return self.albedo;
+        self.albedo
     }
 }

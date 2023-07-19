@@ -15,7 +15,7 @@ impl Ray {
     /// * 'origin' - Ray starting position
     /// * 'direction' - Ray direction
     pub fn new(origin: Vec3, direction: Vec3) -> Ray {
-        return Ray { origin, direction };
+        Ray { origin, direction }
     }
 
     /// Calculate the at position on a ray given t
@@ -24,6 +24,6 @@ impl Ray {
     /// # Returns
     /// * Vec3 position on the ray given a constant t
     pub fn at(&self, t: f64) -> Vec3 {
-        return self.origin + (self.direction * t);
+        self.origin + (self.direction * t)
     }
 }
